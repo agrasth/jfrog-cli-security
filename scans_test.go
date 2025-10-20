@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jfrog/jfrog-cli-artifactory/artifactory/commands/ocicontainer"
-	"github.com/jfrog/jfrog-cli-artifactory/utils/tests"
 	"net/http"
 	"net/http/httptest"
 	"path"
@@ -12,6 +10,9 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/jfrog/jfrog-cli-artifactory/artifactory/commands/ocicontainer"
+	"github.com/jfrog/jfrog-cli-artifactory/utils/tests"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -53,6 +54,8 @@ type binaryScanParams struct {
 	Watches []string
 	// -- vuln flag 'True' value must be provided with 'createWatchesFuncs' to create watches for the test
 	WithVuln bool
+	// --bypass-archive-limits flag value if provided
+	BypassArchiveLimits bool
 }
 
 func getBinaryScanCmdArgs(params binaryScanParams) (args []string) {
@@ -71,6 +74,9 @@ func getBinaryScanCmdArgs(params binaryScanParams) (args []string) {
 	if len(params.Watches) > 0 {
 		args = append(args, "--watches="+strings.Join(params.Watches, ","))
 	}
+	if params.BypassArchiveLimits {
+		args = append(args, "--bypass-archive-limits")
+	}
 	args = append(args, params.BinaryPattern)
 	return args
 }
@@ -86,7 +92,7 @@ func testXrayBinaryScan(t *testing.T, params binaryScanParams, errorExpected boo
 }
 
 func runXrayBinaryScan(t *testing.T, params binaryScanParams) (string, error) {
-	return securityTests.PlatformCli.RunCliCmdWithOutputs(t, append([]string{"scan"}, getBinaryScanCmdArgs(params)...)...)
+	return securityTests.PlatformCli.RunCliCmdWithOutputs(t, append([]string{"scan", "--server-id=default"}, getBinaryScanCmdArgs(params)...)...)
 }
 
 // Binary scan tests
@@ -192,6 +198,7 @@ func testXrayBinaryScanWithWatch(t *testing.T, format format.OutputFormat, polic
 
 func testXrayMultipleBinariesScan(t *testing.T, params binaryScanParams, errorExpected bool) string {
 	params.BinaryPattern = filepath.Join(filepath.FromSlash(securityTests.GetTestResourcesPath()), "projects", "binaries", "*")
+	params.BypassArchiveLimits = true
 	return testXrayBinaryScan(t, params, errorExpected)
 }
 
@@ -205,8 +212,9 @@ func testXrayBinaryScanJASArtifact(t *testing.T, format format.OutputFormat, art
 	pathToScan = filepath.Join(pathToScan, artifact)
 	return testXrayBinaryScan(t,
 		binaryScanParams{
-			BinaryPattern: pathToScan,
-			Format:        format,
+			BinaryPattern:       pathToScan,
+			Format:              format,
+			BypassArchiveLimits: true,
 		},
 		false,
 	)
@@ -217,7 +225,7 @@ func TestXrayBinaryScanWithBypassArchiveLimits(t *testing.T) {
 	unsetEnv := clientTestUtils.SetEnvWithCallbackAndAssert(t, "JF_INDEXER_COMPRESS_MAXENTITIES", "10")
 	defer unsetEnv()
 	binariesPath := filepath.Join(filepath.FromSlash(securityTests.GetTestResourcesPath()), "projects", "binaries", "*")
-	scanArgs := []string{"scan", binariesPath, "--format=json", "--licenses"}
+	scanArgs := []string{"scan", "--server-id=default", binariesPath, "--format=json", "--licenses"}
 	// Run without bypass flag and expect scan to fail
 	err := securityTests.PlatformCli.Exec(scanArgs...)
 	// Expect error
