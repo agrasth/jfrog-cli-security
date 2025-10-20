@@ -98,6 +98,7 @@ func runXrayBinaryScan(t *testing.T, params binaryScanParams) (string, error) {
 // Binary scan tests
 func TestXrayBinaryScanJson(t *testing.T) {
 	integration.InitScanTest(t, scangraph.GraphScanMinXrayVersion)
+	integration.CreateJfrogHomeConfig(t, "", true)
 	output := testXrayMultipleBinariesScan(t, binaryScanParams{Format: format.Json, WithLicense: true}, false)
 	validations.VerifyJsonResults(t, output, validations.ValidationParams{
 		Total: &validations.TotalCount{Licenses: 1, Vulnerabilities: 1},
@@ -106,6 +107,7 @@ func TestXrayBinaryScanJson(t *testing.T) {
 
 func TestXrayBinaryScanSimpleJson(t *testing.T) {
 	integration.InitScanTest(t, scangraph.GraphScanMinXrayVersion)
+	integration.CreateJfrogHomeConfig(t, "", true)
 	output := testXrayBinaryScanWithWatch(t, format.SimpleJson, "xray-scan-binary-policy", "scan-binary-watch", true)
 	validations.VerifySimpleJsonResults(t, output, validations.ValidationParams{
 		Total: &validations.TotalCount{Licenses: 1, Vulnerabilities: 1, Violations: 1},
@@ -114,6 +116,7 @@ func TestXrayBinaryScanSimpleJson(t *testing.T) {
 
 func TestXrayBinaryScanCycloneDx(t *testing.T) {
 	integration.InitScanTest(t, scangraph.GraphScanMinXrayVersion)
+	integration.CreateJfrogHomeConfig(t, "", true)
 	output := testXrayBinaryScanJASArtifact(t, format.CycloneDx, "backupfriend-client.tar.gz", false)
 	validations.VerifyCycloneDxResults(t, output, validations.ValidationParams{
 		Total: &validations.TotalCount{Vulnerabilities: 4},
@@ -126,6 +129,7 @@ func TestXrayBinaryScanCycloneDx(t *testing.T) {
 
 func TestXrayBinaryScanJsonDocker(t *testing.T) {
 	integration.InitScanTest(t, scangraph.GraphScanMinXrayVersion)
+	integration.CreateJfrogHomeConfig(t, "", true)
 	// In Windows, indexer fails to index the tar, Caused by: failed to rename path for layer so we run in clean copy in temp dir
 	output := testXrayBinaryScanJASArtifact(t, format.SimpleJson, "xmas.tar", true)
 	validations.VerifySimpleJsonResults(t, output, validations.ValidationParams{
@@ -139,6 +143,7 @@ func TestXrayBinaryScanJsonDocker(t *testing.T) {
 
 func TestXrayBinaryScanJsonGeneric(t *testing.T) {
 	integration.InitScanTest(t, scangraph.GraphScanMinXrayVersion)
+	integration.CreateJfrogHomeConfig(t, "", true)
 	output := testXrayBinaryScanJASArtifact(t, format.SimpleJson, "backupfriend-client.tar.gz", false)
 	validations.VerifySimpleJsonResults(t, output, validations.ValidationParams{
 		Total: &validations.TotalCount{Vulnerabilities: 4},
@@ -151,6 +156,7 @@ func TestXrayBinaryScanJsonGeneric(t *testing.T) {
 
 func TestXrayBinaryScanJsonJar(t *testing.T) {
 	integration.InitScanTest(t, scangraph.GraphScanMinXrayVersion)
+	integration.CreateJfrogHomeConfig(t, "", true)
 	output := testXrayBinaryScanJASArtifact(t, format.SimpleJson, "student-services-security-0.0.1.jar", false)
 	validations.VerifySimpleJsonResults(t, output, validations.ValidationParams{
 		Total: &validations.TotalCount{Vulnerabilities: 41},
@@ -163,6 +169,7 @@ func TestXrayBinaryScanJsonJar(t *testing.T) {
 
 func TestXrayBinaryScanJsonWithProgress(t *testing.T) {
 	integration.InitScanTest(t, scangraph.GraphScanMinXrayVersion)
+	integration.CreateJfrogHomeConfig(t, "", true)
 	callback := commonTests.MockProgressInitialization()
 	defer callback()
 	output := testXrayMultipleBinariesScan(t, binaryScanParams{Format: format.Json, WithLicense: true}, false)
@@ -173,6 +180,7 @@ func TestXrayBinaryScanJsonWithProgress(t *testing.T) {
 
 func TestXrayBinaryScanSimpleJsonWithProgress(t *testing.T) {
 	integration.InitScanTest(t, scangraph.GraphScanMinXrayVersion)
+	integration.CreateJfrogHomeConfig(t, "", true)
 	callback := commonTests.MockProgressInitialization()
 	defer callback()
 	output := testXrayBinaryScanWithWatch(t, format.SimpleJson, "xray-scan-binary-progress-policy", "scan-binary-progress-watch", true)
@@ -222,10 +230,11 @@ func testXrayBinaryScanJASArtifact(t *testing.T, format format.OutputFormat, art
 
 func TestXrayBinaryScanWithBypassArchiveLimits(t *testing.T) {
 	integration.InitScanTest(t, scan.BypassArchiveLimitsMinXrayVersion)
+	integration.CreateJfrogHomeConfig(t, "", true)
 	unsetEnv := clientTestUtils.SetEnvWithCallbackAndAssert(t, "JF_INDEXER_COMPRESS_MAXENTITIES", "10")
 	defer unsetEnv()
 	binariesPath := filepath.Join(filepath.FromSlash(securityTests.GetTestResourcesPath()), "projects", "binaries", "*")
-	scanArgs := []string{"scan", "--server-id=default", binariesPath, "--format=json", "--licenses"}
+	scanArgs := []string{"scan", binariesPath, "--format=json", "--licenses"}
 	// Run without bypass flag and expect scan to fail
 	err := securityTests.PlatformCli.Exec(scanArgs...)
 	// Expect error
