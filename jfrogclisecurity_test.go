@@ -42,6 +42,10 @@ func setupIntegrationTests() {
 	integrationUtils.AuthenticateArtifactory()
 	integrationUtils.AuthenticateXsc()
 	integrationUtils.CreateRequiredRepositories()
+	// Create CLI config for binary scan tests (Docker tests create their own isolated configs)
+	if *configTests.TestScan {
+		integrationUtils.CreateJfrogHomeConfig(nil, "", true)
+	}
 }
 
 func tearDownIntegrationTests() {
