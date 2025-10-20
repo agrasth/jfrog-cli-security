@@ -92,7 +92,7 @@ func testXrayBinaryScan(t *testing.T, params binaryScanParams, errorExpected boo
 }
 
 func runXrayBinaryScan(t *testing.T, params binaryScanParams) (string, error) {
-	return securityTests.PlatformCli.RunCliCmdWithOutputs(t, append([]string{"scan", "--server-id=default"}, getBinaryScanCmdArgs(params)...)...)
+	return securityTests.PlatformCli.RunCliCmdWithOutputs(t, append([]string{"scan"}, getBinaryScanCmdArgs(params)...)...)
 }
 
 // Binary scan tests
