@@ -198,7 +198,7 @@ func testXrayBinaryScanWithWatch(t *testing.T, format format.OutputFormat, polic
 
 func testXrayMultipleBinariesScan(t *testing.T, params binaryScanParams, errorExpected bool) string {
 	params.BinaryPattern = filepath.Join(filepath.FromSlash(securityTests.GetTestResourcesPath()), "projects", "binaries", "*")
-	params.BypassArchiveLimits = true
+	// Note: BypassArchiveLimits is not set here - individual tests can set it if needed
 	return testXrayBinaryScan(t, params, errorExpected)
 }
 
@@ -212,9 +212,8 @@ func testXrayBinaryScanJASArtifact(t *testing.T, format format.OutputFormat, art
 	pathToScan = filepath.Join(pathToScan, artifact)
 	return testXrayBinaryScan(t,
 		binaryScanParams{
-			BinaryPattern:       pathToScan,
-			Format:              format,
-			BypassArchiveLimits: true,
+			BinaryPattern: pathToScan,
+			Format:        format,
 		},
 		false,
 	)
@@ -222,7 +221,6 @@ func testXrayBinaryScanJASArtifact(t *testing.T, format format.OutputFormat, art
 
 func TestXrayBinaryScanWithBypassArchiveLimits(t *testing.T) {
 	integration.InitScanTest(t, scan.BypassArchiveLimitsMinXrayVersion)
-	integration.CreateJfrogHomeConfig(t, "", true)
 	unsetEnv := clientTestUtils.SetEnvWithCallbackAndAssert(t, "JF_INDEXER_COMPRESS_MAXENTITIES", "10")
 	defer unsetEnv()
 	binariesPath := filepath.Join(filepath.FromSlash(securityTests.GetTestResourcesPath()), "projects", "binaries", "*")

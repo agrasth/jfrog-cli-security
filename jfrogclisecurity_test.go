@@ -12,8 +12,8 @@ import (
 	"github.com/jfrog/jfrog-cli-security/cli"
 	configTests "github.com/jfrog/jfrog-cli-security/tests"
 	integrationUtils "github.com/jfrog/jfrog-cli-security/tests/utils/integration"
-	clientLog "github.com/jfrog/jfrog-client-go/utils/log"
 	clientUtils "github.com/jfrog/jfrog-client-go/utils"
+	clientLog "github.com/jfrog/jfrog-client-go/utils/log"
 )
 
 func TestMain(m *testing.M) {
